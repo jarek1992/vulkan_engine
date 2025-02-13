@@ -63,8 +63,8 @@ void VulkanEngine::init_vulkan() {
     vkb::Instance vkb_inst = inst_ret.value();
 
     //grab the instance
-    _instance = vkb_inst.instance();
-    _debug_messenger = vkb_inst.debug_messenger();
+    _instance = vkb_inst.instance;
+    _debug_messenger = vkb_inst.debug_messenger;
 
     SDL_Vulkan_CreateSurface(_window, _instance, &_surface);
 
@@ -98,8 +98,6 @@ void VulkanEngine::init_vulkan() {
     _device = vkbDevice.device;
     _chosenGPU = physicalDevice.physical_device;
 }
-
-void VulkanEngine::init_swapchain() {}
 
 void VulkanEngine::init_commands() {}
 
