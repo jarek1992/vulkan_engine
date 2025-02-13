@@ -5,12 +5,30 @@
 
 #include <vk_types.h>
 
+//hold the structures and commands to draw a given frame
+struct FrameData {
+
+	VkCommandPool _commandPool;
+	VkCommandBuffer _mainCommandBuffer;
+};
+
+constexpr unsigned int FRAME_OVERLAP = 2;
+
 class VulkanEngine {
 public:
 	bool _isInitialized{ false };
 	int _frameNumber {0};
 	bool stop_rendering{ false };
 	VkExtent2D _windowExtent{ 800 , 600 };
+
+	FrameData _frames[FRAME_OVERLAP];
+
+	FrameData& get_current_frame() { 
+		return _frames[_frameNumber % FRAME_OVERLAP]; 
+	};
+
+	VkQueue _graphicsQueue;
+	uint32_t _graphicsQueueFamily;
 
 	//ADDED
 	VkInstance _instance; //vulkan library handle 
