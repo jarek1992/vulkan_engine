@@ -6,6 +6,7 @@
 
 #include <vk_initializers.h>
 #include <vk_types.h>
+#include <vk_images.h>
 
 #include "VkBootstrap.h"
 
@@ -180,7 +181,27 @@ void VulkanEngine::draw() {
     
     //start the command buffer recording
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+
+    //make the swapchain image into writeable mode before rendering
+    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+
+    //make a clear-color from frame number. This will flash with 1 120 frame period
+    VkClearColorValue clearValue;
+    float flash = std::abs(std::sin(_frameNumber / 120.f));
+    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
+
+    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+
+    //clear image
+    vkCmdClearColorImage(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
+
+    //make the swapchain image into presentable mode
+    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    
+    //finalize the command buffer (we can no longer add commands, but it can now be executed)
+    VK_CHECK(vkEndCommandBuffer(cmd));
 }
+
 
 void VulkanEngine::run()
 {

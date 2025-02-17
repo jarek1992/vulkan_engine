@@ -191,7 +191,6 @@ VkImageSubresourceRange vkinit::image_subresource_range(VkImageAspectFlags aspec
 //< subresource
 
 
-
 VkDescriptorSetLayoutBinding vkinit::descriptorset_layout_binding(VkDescriptorType type, VkShaderStageFlags stageFlags,
     uint32_t binding)
 {
