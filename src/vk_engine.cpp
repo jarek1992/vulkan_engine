@@ -161,15 +161,25 @@ void VulkanEngine::cleanup() {
 }
 
 void VulkanEngine::draw() {
-    //wait until the gpu has finished rendering the last frame. Timeout of 1
-    //second
+    //wait until the gpu has finished rendering the last frame. Timeout of 1 second
     VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000));
     VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
 
     //request image from the swapchain
     uint32_t swapchainImageIndex;
     VK_CHECK(vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
+
+    //naming it cmd for shorter writing
+    VkCommandBuffer cmd = get_current_frame()._mainCommandBuffer;
+
+    //now that we are sure that the cdmmands finished executing, we can safely reset the command buffer to begin recording again
+    VK_CHECK(vkResetCommandBuffer(cmd, 0));
+
+    //begin the command buffer recording. We will use this command buffer exactly once, so we want to let vulkan know that
+    VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
     
+    //start the command buffer recording
+    VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 }
 
 void VulkanEngine::run()
