@@ -200,8 +200,22 @@ void VulkanEngine::draw() {
     
     //finalize the command buffer (we can no longer add commands, but it can now be executed)
     VK_CHECK(vkEndCommandBuffer(cmd));
-}
 
+    //prepare thr submission to the queue
+    //we want to wait on the _presentSemaphore, as that semaphore is signaled when the swapchain is ready
+    //we will signal the _renderSemaphore, to signal that rendering has finshed 
+
+    VkCommandBufferSubmitInfo cmdinfo = vkinit::command_buffer_submit_info(cmd);
+
+    VkSemaphoreSubmitInfo waitInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame()._swapchainSemaphore);
+    VkSemaphoreSubmitInfo signalInfo = vkinit::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, get_current_frame()._renderSemaphore);
+
+    VkSubmitInfo2 submit = vkinit::submit_info(&cmdinfo, &signalInfo, &waitInfo);
+
+    //submit command buffer to the queue and execute it
+    //_renderFence will now block until the graphic commands finish execution
+    VK_CHECK(vkQueueSubmit2(_graphicsQueue, 1, &submit, get_current_frame()._renderFence));
+}
 
 void VulkanEngine::run()
 {
