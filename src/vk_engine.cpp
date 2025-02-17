@@ -160,9 +160,16 @@ void VulkanEngine::cleanup() {
     loadedEngine = nullptr;
 }
 
-void VulkanEngine::draw()
-{
-    // nothing yet
+void VulkanEngine::draw() {
+    //wait until the gpu has finished rendering the last frame. Timeout of 1
+    //second
+    VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000));
+    VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
+
+    //request image from the swapchain
+    uint32_t swapchainImageIndex;
+    VK_CHECK(vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
+    
 }
 
 void VulkanEngine::run()
