@@ -30,7 +30,7 @@ void VulkanEngine::init()
     SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
 
     _window = SDL_CreateWindow(
-        "Vulkan Engine",
+        "Vulkan_app",
         SDL_WINDOWPOS_UNDEFINED,
         SDL_WINDOWPOS_UNDEFINED,
         _windowExtent.width,
@@ -54,7 +54,7 @@ void VulkanEngine::init_vulkan() {
     vkb::InstanceBuilder builder;
 
     //make the vulkan instance, with basic debug features
-    auto inst_ret = builder.set_app_name("Vulkan App")
+    auto inst_ret = builder.set_app_name("Vulkan_app")
         .request_validation_layers(bUseValidationLayers)
         .use_default_debug_messenger()
         .require_api_version(1, 3, 0)
@@ -119,11 +119,26 @@ void VulkanEngine::init_commands() {
     }
 }
 
-void VulkanEngine::init_sync_structures() {}
+void VulkanEngine::init_sync_structures() {
+    //create syncronization structures
+    //one fence to control when the gpu has finished rendering the frame,
+    //and 2 semaphores to syncronize rendering with swapchain
+    //we want the fence to start signalled so we can wait on it on the first frame 
+    VkFenceCreateInfo fenceCreateInfo = vkinit::fence_create_info(VK_FENCE_CREATE_SIGNALED_BIT);
+    VkSemaphoreCreateInfo semaphoreCreateInfo = vkinit::semaphore_create_info();
+
+    for (int i = 0; i < FRAME_OVERLAP; i++) {
+        VK_CHECK(vkCreateFence(_device, &fenceCreateInfo, nullptr, &_frames[i]._renderFence));
+
+        VK_CHECK(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &_frames[i]._swapchainSemaphore));
+        VK_CHECK(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &_frames[i]._renderSemaphore));
+    }
+
+}
 
 void VulkanEngine::cleanup() {
     if (_isInitialized) {
-        //make sure the gpu has stopped doing its things
+        //make sure tghe gpu has stopped doing its things
         vkDeviceWaitIdle(_device);
 
         for (int i = 0; i < FRAME_OVERLAP; i++) {

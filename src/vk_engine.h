@@ -8,6 +8,9 @@
 //hold the structures and commands to draw a given frame
 struct FrameData {
 
+	VkSemaphore _swapchainSemaphore, _renderSemaphore;
+	VkFence _renderFence;
+
 	VkCommandPool _commandPool;
 	VkCommandBuffer _mainCommandBuffer;
 };
@@ -29,8 +32,6 @@ public:
 
 	VkQueue _graphicsQueue;
 	uint32_t _graphicsQueueFamily;
-
-	//ADDED
 	VkInstance _instance; //vulkan library handle 
 	VkDebugUtilsMessengerEXT _debug_messenger; //vulkan debug output handle
 	VkPhysicalDevice _chosenGPU; //GPU chosen as the default device
