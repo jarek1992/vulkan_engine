@@ -138,27 +138,30 @@ void VulkanEngine::init_sync_structures() {
 }
 
 void VulkanEngine::cleanup() {
+
     if (_isInitialized) {
         //make sure tghe gpu has stopped doing its things
         vkDeviceWaitIdle(_device);
 
         for (int i = 0; i < FRAME_OVERLAP; i++) {
             vkDestroyCommandPool(_device, _frames[i]._commandPool, nullptr);
+
+            //destroy sync objects
+            vkDestroyFence(_device, _frames[i]._renderFence, nullptr);
+            vkDestroySemaphore(_device, _frames[i]._renderSemaphore, nullptr);
+            vkDestroySemaphore(_device, _frames[i]._swapchainSemaphore, nullptr);
+
         }
 
+        destroy_swapchain();
+        vkDestroySurfaceKHR(_instance, _surface, nullptr);
+        vkDestroyDevice(_device, nullptr);
+        vkb::destroy_debug_utils_messenger(_instance, _debug_messenger);
         //ERROR - Instance destroyed before others
         vkDestroyInstance(_instance, nullptr);
 
-        destroy_swapchain();
-
-        vkDestroyDevice(_device, nullptr);
-        vkDestroySurfaceKHR(_instance, _surface, nullptr);
-        vkb::destroy_debug_utils_messenger(_instance, _debug_messenger);
         SDL_DestroyWindow(_window);
     }
-
-    // clear engine pointer
-    loadedEngine = nullptr;
 }
 
 void VulkanEngine::draw() {
@@ -215,6 +218,26 @@ void VulkanEngine::draw() {
     //submit command buffer to the queue and execute it
     //_renderFence will now block until the graphic commands finish execution
     VK_CHECK(vkQueueSubmit2(_graphicsQueue, 1, &submit, get_current_frame()._renderFence));
+
+    //prepare present, this will put the image we just rendered into the visible window 
+    //we want to wait on the _renderSemaphore for that, 
+    //as its necessary that drawing commands have finished before the image is displayed to the user
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.pNext = nullptr;
+    presentInfo.pSwapchains = &_swapchain;
+    presentInfo.swapchainCount = 1;
+
+    presentInfo.pWaitSemaphores = &get_current_frame()._renderSemaphore;
+    presentInfo.waitSemaphoreCount = 1;
+
+    presentInfo.pImageIndices = &swapchainImageIndex;
+
+    VK_CHECK(vkQueuePresentKHR(_graphicsQueue, &presentInfo));
+
+    //increase the number of the frames
+    _frameNumber++;
+
 }
 
 void VulkanEngine::run()
