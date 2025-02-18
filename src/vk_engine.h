@@ -23,7 +23,6 @@ struct DeletionQueue {
 	}
 };
 
-
 //hold the structures and commands to draw a given frame
 struct FrameData {
 
@@ -43,7 +42,7 @@ public:
 	bool _isInitialized{ false };
 	int _frameNumber {0};
 	bool stop_rendering{ false };
-	VkExtent2D _windowExtent{ 800 , 600 };
+	VkExtent2D _windowExtent{ 1920 , 1020 };
 
 	FrameData _frames[FRAME_OVERLAP];
 
@@ -72,6 +71,10 @@ public:
 	struct SDL_Window* _window{ nullptr };
 
 	static VulkanEngine& Get();
+
+	//draw resources
+	AllocatedImage _drawImage;
+	VkExtent2D _drawExtent;
 
 	//initializes everything in the engine
 	void init();
