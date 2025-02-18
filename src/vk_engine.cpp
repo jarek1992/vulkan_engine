@@ -13,6 +13,9 @@
 #include <chrono>
 #include <thread>
 
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 VulkanEngine* loadedEngine = nullptr;
 
 VulkanEngine& VulkanEngine::Get() { return *loadedEngine; }
@@ -151,6 +154,8 @@ void VulkanEngine::cleanup() {
             vkDestroySemaphore(_device, _frames[i]._renderSemaphore, nullptr);
             vkDestroySemaphore(_device, _frames[i]._swapchainSemaphore, nullptr);
 
+            //flush the global deletion queue
+            _frames[i]._deletionQueue.flush();
         }
 
         destroy_swapchain();
@@ -167,7 +172,8 @@ void VulkanEngine::cleanup() {
 void VulkanEngine::draw() {
     //wait until the gpu has finished rendering the last frame. Timeout of 1 second
     VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000));
-    VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
+
+    get_current_frame()._deletionQueue.flush();
 
     //request image from the swapchain
     uint32_t swapchainImageIndex;

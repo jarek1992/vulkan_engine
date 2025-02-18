@@ -32,6 +32,8 @@ struct FrameData {
 
 	VkCommandPool _commandPool;
 	VkCommandBuffer _mainCommandBuffer;
+
+	DeletionQueue _deletionQueue;
 };
 
 constexpr unsigned int FRAME_OVERLAP = 2;
@@ -58,6 +60,10 @@ public:
 	VkSurfaceKHR _surface; //vulkan window surface
 	VkSwapchainKHR _swapchain;
 	VkFormat _swapchainImageFormat;
+
+	DeletionQueue _mainDeletionQueue;
+
+	VmaAllocator _allocator;
 
 	std::vector<VkImage> _swapchainImages;
 	std::vector<VkImageView> _swapchainImageViews;
