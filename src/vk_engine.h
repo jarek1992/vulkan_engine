@@ -5,6 +5,25 @@
 
 #include <vk_types.h>
 
+struct DeletionQueue {
+
+	std::deque<std::function<void()>> deletors;
+
+	void push_function(std::function<void()>&& function) {
+		deletors.push_back(function);
+	}
+
+	void flush() {
+		//reverse iterate the deletion queue to execute all the fucntions
+		for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
+			(*it)(); //call functors
+		}
+
+		deletors.clear();
+	}
+};
+
+
 //hold the structures and commands to draw a given frame
 struct FrameData {
 
