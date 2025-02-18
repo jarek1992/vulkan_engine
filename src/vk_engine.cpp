@@ -182,6 +182,7 @@ void VulkanEngine::cleanup() {
 }
 
 void VulkanEngine::draw() {
+
     //wait until the gpu has finished rendering the last frame. Timeout of 1 second
     VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000));
 
@@ -189,6 +190,7 @@ void VulkanEngine::draw() {
 
     //request image from the swapchain
     uint32_t swapchainImageIndex;
+
     VK_CHECK(vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
 
     //naming it cmd for shorter writing
@@ -199,26 +201,29 @@ void VulkanEngine::draw() {
 
     //begin the command buffer recording. We will use this command buffer exactly once, so we want to let vulkan know that
     VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    
-    //start the command buffer recording
+
+    //draw first
+    _drawExtent.width = _drawImage.imageExtent.width;
+    _drawExtent.height = _drawImage.imageExtent.height;
+
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
-    //make the swapchain image into writeable mode before rendering
-    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    //transition our main draw image into general layout so we can write into it
+    //we will overwrite it all so we dont care about what was the older layout
+    vkutil::transition_image(cmd, _drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
-    //make a clear-color from frame number. This will flash with 1 120 frame period
-    VkClearColorValue clearValue;
-    float flash = std::abs(std::sin(_frameNumber / 120.f));
-    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
+    draw_background(cmd);
 
-    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    //transition the draw image and the swapchain image into their correct transfer layouts 
+    vkutil::transition_image(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-    //clear image
-    vkCmdClearColorImage(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
+    //execute a copy from the draw image into swapchain
+    vkutil::copy_image_to_image(cmd, _drawImage.image, _swapchainImages[swapchainImageIndex], _drawExtent, _swapchainExtent);
 
-    //make the swapchain image into presentable mode
-    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    
+    //set swapchain image layout to Present so we can show it on the screen
+    vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
     //finalize the command buffer (we can no longer add commands, but it can now be executed)
     VK_CHECK(vkEndCommandBuffer(cmd));
 
@@ -256,6 +261,18 @@ void VulkanEngine::draw() {
     //increase the number of the frames
     _frameNumber++;
 
+}
+
+void VulkanEngine::draw_background(VkCommandBuffer cmd) {
+    //make a clear-color from frame number. This will flash with a 120 frame period
+    VkClearColorValue clearValue;
+    float flash = std::abs(std::sin(_frameNumber / 120.f));
+    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
+
+    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+
+    //clear image
+    vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
 }
 
 void VulkanEngine::run()
