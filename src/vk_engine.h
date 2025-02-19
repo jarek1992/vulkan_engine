@@ -42,7 +42,7 @@ public:
 	bool _isInitialized{ false };
 	int _frameNumber {0};
 	bool stop_rendering{ false };
-	VkExtent2D _windowExtent{ 1920 , 1020 };
+	VkExtent2D _windowExtent{ 800 , 600 };
 
 	FrameData _frames[FRAME_OVERLAP];
 
