@@ -52,3 +52,12 @@ void DecriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, std::span<
 	vkCreateDescriptorPool(device, &pool_info, nullptr, &pool);
 }
 
+void DecriptorAllocator::clear_descriptors(VkDevice device) {
+
+	vkResetDescriptorPool(device, pool, 0);
+}
+
+void DecriptorAllocator::destroy_pool(VkDevice device) {
+
+	vkDestroyDescriptorPool(device, pool, nullptr);
+}
