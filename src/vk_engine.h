@@ -109,5 +109,4 @@ private:
 	void destroy_swapchain();
 	void init_descriptors();
 	void init_pipelines();
-	void init_background_pipelines();
 };
