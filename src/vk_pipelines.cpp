@@ -45,6 +45,4 @@ bool vkutil::load_shader_module(const char* filePath, VkDevice device, VkShaderM
 	}
 	*outShaderModule = shaderModule;
 	return true;
-
-
 }

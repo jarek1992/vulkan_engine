@@ -7,6 +7,7 @@
 #include <vk_initializers.h>
 #include <vk_types.h>
 #include <vk_images.h>
+#include <vk_pipelines.h>
 
 #include "VkBootstrap.h"
 
@@ -51,6 +52,8 @@ void VulkanEngine::init()
     init_sync_structures();
 
     init_descriptors();
+
+    init_pipelines();
 
     // everything went fine
     _isInitialized = true;
@@ -428,4 +431,9 @@ void VulkanEngine::init_descriptors() {
 
         vkDestroyDescriptorSetLayout(_device, _drawImageDescriptorLayout, nullptr);
         });
+}
+
+void VulkanEngine::init_pipelines() {
+
+    init_background_pipelines();
 }
