@@ -61,3 +61,17 @@ void DecriptorAllocator::destroy_pool(VkDevice device) {
 
 	vkDestroyDescriptorPool(device, pool, nullptr);
 }
+
+VkDescriptorSet DecriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout) {
+
+	VkDescriptorSetAllocateInfo allocInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+	allocInfo.pNext = nullptr;
+	allocInfo.descriptorPool = pool;
+	allocInfo.descriptorSetCount = 1;
+	allocInfo.pSetLayouts = &layout;
+
+	VkDescriptorSet ds;
+	VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, &ds));
+
+	return ds;
+}

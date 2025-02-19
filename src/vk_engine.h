@@ -4,6 +4,7 @@
 #pragma once
 
 #include <vk_types.h>
+#include <vk_descriptors.h>
 
 struct DeletionQueue {
 
@@ -44,6 +45,13 @@ public:
 	bool stop_rendering{ false };
 	VkExtent2D _windowExtent{ 800 , 600 };
 
+	struct SDL_Window* _window{ nullptr };
+
+	VkInstance _instance; //vulkan library handle 
+	VkDebugUtilsMessengerEXT _debug_messenger; //vulkan debug output handle
+	VkPhysicalDevice _chosenGPU; //GPU chosen as the default device
+	VkDevice _device; //vulkan device for commands
+
 	FrameData _frames[FRAME_OVERLAP];
 
 	FrameData& get_current_frame() { 
@@ -52,29 +60,29 @@ public:
 
 	VkQueue _graphicsQueue;
 	uint32_t _graphicsQueueFamily;
-	VkInstance _instance; //vulkan library handle 
-	VkDebugUtilsMessengerEXT _debug_messenger; //vulkan debug output handle
-	VkPhysicalDevice _chosenGPU; //GPU chosen as the default device
-	VkDevice _device; //vulkan device for commands
+	
 	VkSurfaceKHR _surface; //vulkan window surface
 	VkSwapchainKHR _swapchain;
 	VkFormat _swapchainImageFormat;
+	
+	//draw resources
+	AllocatedImage _drawImage;
+	VkExtent2D _swapchainExtent;
+	VkExtent2D _drawExtent;
+
+	DecriptorAllocator globalDescriptorAllocator;
+
+	VkDescriptorSet _drawImageDescriptors;
+	VkDescriptorSetLayout _drawImageDescriptorLayout;
+
+	std::vector<VkImage> _swapchainImages;
+	std::vector<VkImageView> _swapchainImageViews;
 
 	DeletionQueue _mainDeletionQueue;
 
 	VmaAllocator _allocator;
 
-	std::vector<VkImage> _swapchainImages;
-	std::vector<VkImageView> _swapchainImageViews;
-	VkExtent2D _swapchainExtent;
-
-	struct SDL_Window* _window{ nullptr };
-
 	static VulkanEngine& Get();
-
-	//draw resources
-	AllocatedImage _drawImage;
-	VkExtent2D _drawExtent;
 
 	//initializes everything in the engine
 	void init();
@@ -96,4 +104,5 @@ private:
 	void init_sync_structures();
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
+	void init_descriptors();
 };
