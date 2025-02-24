@@ -1,7 +1,6 @@
 ﻿#include <vk_descriptors.h>
 
-void DescriptorLayoutBuilder::add_bindings(uint32_t binding, VkDescriptorType type) {
-	
+void DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptorType type) {
 	VkDescriptorSetLayoutBinding newbind{};
 	newbind.binding = binding;
 	newbind.descriptorCount = 1;
@@ -15,7 +14,6 @@ void DescriptorLayoutBuilder::clear() {
 }
 
 VkDescriptorSetLayout DescriptorLayoutBuilder::build(VkDevice device, VkShaderStageFlags shaderStages, void* pNext, VkDescriptorSetLayoutCreateFlags flags) {
-
 	for (auto& b : bindings) {
 		b.stageFlags |= shaderStages;
 	}
@@ -33,8 +31,7 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(VkDevice device, VkShaderSt
 	return set;
 }
 
-void DecriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios) {
-
+void DescriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, std::span<PoolSizeRatio> poolRatios) {
 	std::vector<VkDescriptorPoolSize> poolSizes;
 	for (PoolSizeRatio ratio : poolRatios) {
 		poolSizes.push_back(VkDescriptorPoolSize{
@@ -52,18 +49,15 @@ void DecriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, std::span<
 	vkCreateDescriptorPool(device, &pool_info, nullptr, &pool);
 }
 
-void DecriptorAllocator::clear_descriptors(VkDevice device) {
-
+void DescriptorAllocator::clear_descriptors(VkDevice device) {
 	vkResetDescriptorPool(device, pool, 0);
 }
 
-void DecriptorAllocator::destroy_pool(VkDevice device) {
-
+void DescriptorAllocator::destroy_pool(VkDevice device) {
 	vkDestroyDescriptorPool(device, pool, nullptr);
 }
 
-VkDescriptorSet DecriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout) {
-
+VkDescriptorSet DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout) {
 	VkDescriptorSetAllocateInfo allocInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 	allocInfo.pNext = nullptr;
 	allocInfo.descriptorPool = pool;

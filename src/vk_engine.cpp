@@ -269,7 +269,8 @@ void VulkanEngine::draw() {
 }
 
 void VulkanEngine::draw_background(VkCommandBuffer cmd) {
-    //make a clear-color from frame number. This will flash with a 120 frame period
+
+    //make a clear-color from frame number. This will flash with a 120 frame period.
     VkClearColorValue clearValue;
     float flash = std::abs(std::sin(_frameNumber / 120.f));
     clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
@@ -279,14 +280,44 @@ void VulkanEngine::draw_background(VkCommandBuffer cmd) {
     //clear image
     vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
 
-    // bind the gradient drawing compute pipeline
+    // 🔹 ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
+    VkImageMemoryBarrier preComputeBarrier = {};
+    preComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    preComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+    preComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    preComputeBarrier.image = _drawImage.image;
+    preComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    preComputeBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    preComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &preComputeBarrier);
+
+    //bind the gradient drawing compute pipeline
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipeline);
 
-    // bind the descriptor set containing the draw image for the compute pipeline
+    //bind the descriptor set containing the draw image for the compute pipeline
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
 
-    // execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
-    vkCmdDispatch(cmd, std::ceil(_drawExtent.width / 16.0), std::ceil(_drawExtent.height / 16.0), 1);
+    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
+   /* uint32_t groupCountX = (_drawExtent.width + 15) / 16;
+    uint32_t groupCountY = (_drawExtent.height + 15) / 16;
+    vkCmdDispatch(cmd, groupCountX, groupCountY, 1);*/
+
+    vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);
+
+    // 🔹 ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
+    VkImageMemoryBarrier postComputeBarrier = {};
+    postComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    postComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+    postComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+    postComputeBarrier.image = _drawImage.image;
+    postComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    postComputeBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    postComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &postComputeBarrier);
 }
 
 void VulkanEngine::run()
@@ -400,18 +431,16 @@ void VulkanEngine::destroy_swapchain()
 }
 
 void VulkanEngine::init_descriptors() {
-
-    //create descriptor pool that will hold 10 sets with 1 image each
-    std::vector<DecriptorAllocator::PoolSizeRatio> sizes = {
+    //create a descriptor pool that will hold 10 sets with 1 image each
+    std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 }
     };
 
     globalDescriptorAllocator.init_pool(_device, 10, sizes);
-
     //make the descriptor set layout for our compute draw
     {
         DescriptorLayoutBuilder builder;
-        builder.add_bindings(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+        builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
         _drawImageDescriptorLayout = builder.build(_device, VK_SHADER_STAGE_COMPUTE_BIT);
     }
 
@@ -439,11 +468,17 @@ void VulkanEngine::init_descriptors() {
         globalDescriptorAllocator.destroy_pool(_device);
 
         vkDestroyDescriptorSetLayout(_device, _drawImageDescriptorLayout, nullptr);
-        });
+    });
+
 }
 
 void VulkanEngine::init_pipelines() {
 
+    init_background_pipelines();
+}
+
+void VulkanEngine::init_background_pipelines()
+{
     VkPipelineLayoutCreateInfo computeLayout{};
     computeLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     computeLayout.pNext = nullptr;
@@ -480,3 +515,4 @@ void VulkanEngine::init_pipelines() {
         vkDestroyPipeline(_device, _gradientPipeline, nullptr);
     });
 }
+

@@ -70,7 +70,7 @@ public:
 	VkExtent2D _swapchainExtent;
 	VkExtent2D _drawExtent;
 
-	DecriptorAllocator globalDescriptorAllocator;
+	DescriptorAllocator globalDescriptorAllocator;
 
 	VkPipeline _gradientPipeline;
 	VkPipelineLayout _gradientPipelineLayout;
@@ -109,4 +109,5 @@ private:
 	void destroy_swapchain();
 	void init_descriptors();
 	void init_pipelines();
+	void init_background_pipelines();
 };
