@@ -139,6 +139,7 @@ void VulkanEngine::init_commands() {
         VK_CHECK(vkAllocateCommandBuffers(_device, &cmdAllocInfo, &_frames[i]._mainCommandBuffer));
     }
 
+    //imgui cmd
     VK_CHECK(vkCreateCommandPool(_device, &commandPoolInfo, nullptr, &_immCommandPool));
 
     //allocate the command buffer for immediate submits
@@ -166,6 +167,9 @@ void VulkanEngine::init_sync_structures() {
         VK_CHECK(vkCreateSemaphore(_device, &semaphoreCreateInfo, nullptr, &_frames[i]._renderSemaphore));
     }
 
+    //imgui fence
+    VK_CHECK(vkCreateFence(_device, &fenceCreateInfo, nullptr, &_immFence));
+    _mainDeletionQueue.push_function([=]() { vkDestroyFence(_device, _immFence, nullptr); });
 }
 
 void VulkanEngine::cleanup() {
