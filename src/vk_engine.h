@@ -83,6 +83,11 @@ public:
 
 	DeletionQueue _mainDeletionQueue;
 
+	//immediate submit structures
+	VkFence _immFence;
+	VkCommandBuffer _immCommandBuffer;
+	VkCommandPool _immCommandPool;
+
 	VmaAllocator _allocator;
 
 	static VulkanEngine& Get();
@@ -100,6 +105,8 @@ public:
 	//run main loop
 	void run();
 
+	void immediate_submit(std::function<void(VkCommandBuffer cmd)>&& function);
+
 private:
 	void init_vulkan();
 	void init_swapchain();
@@ -110,4 +117,5 @@ private:
 	void init_descriptors();
 	void init_pipelines();
 	void init_background_pipelines();
+	void init_imgui();
 };

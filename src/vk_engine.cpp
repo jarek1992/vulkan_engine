@@ -138,6 +138,17 @@ void VulkanEngine::init_commands() {
 
         VK_CHECK(vkAllocateCommandBuffers(_device, &cmdAllocInfo, &_frames[i]._mainCommandBuffer));
     }
+
+    VK_CHECK(vkCreateCommandPool(_device, &commandPoolInfo, nullptr, &_immCommandPool));
+
+    //allocate the command buffer for immediate submits
+    VkCommandBufferAllocateInfo cmdAllocInfo = vkinit::command_buffer_allocate_info(_immCommandPool, 1);
+
+    VK_CHECK(vkAllocateCommandBuffers(_device, &cmdAllocInfo, &_immCommandBuffer));
+
+    _mainDeletionQueue.push_function([=]() {
+        vkDestroyCommandPool(_device, _immCommandPool, nullptr);
+        });
 }
 
 void VulkanEngine::init_sync_structures() {
@@ -300,10 +311,6 @@ void VulkanEngine::draw_background(VkCommandBuffer cmd) {
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
 
     //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
-   /* uint32_t groupCountX = (_drawExtent.width + 15) / 16;
-    uint32_t groupCountY = (_drawExtent.height + 15) / 16;
-    vkCmdDispatch(cmd, groupCountX, groupCountY, 1);*/
-
     vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);
 
     // 🔹 ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
