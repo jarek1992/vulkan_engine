@@ -338,15 +338,15 @@ void VulkanEngine::run()
 {
     SDL_Event e;
     bool bQuit = false;
-
-    // main loop
+    //main loop
     while (!bQuit) {
-        // Handle events on queue
-        while (SDL_PollEvent(&e) != 0) {
-            // close the window when user alt-f4s or clicks the X button
-            if (e.type == SDL_QUIT)
-                bQuit = true;
 
+        //handle events on queue
+        while (SDL_PollEvent(&e) != 0) {
+            //close the window when user alt-f4s or clicks the X button
+            if (e.type == SDL_QUIT) {
+                bQuit = true;
+            }
             if (e.type == SDL_WINDOWEVENT) {
                 if (e.window.event == SDL_WINDOWEVENT_MINIMIZED) {
                     stop_rendering = true;
@@ -355,15 +355,30 @@ void VulkanEngine::run()
                     stop_rendering = false;
                 }
             }
+
+            //send SDL event to imgui for handling
+            ImGui_ImplSDL2_ProcessEvent(&e);
         }
 
-        // do not draw if we are minimized
+        //do not draw if we are minimized
         if (stop_rendering) {
-            // throttle the speed to avoid the endless spinning
+            //throttle the speed to avoid the endless spinning
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             continue;
         }
 
+        //imgui new frame
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplSDL2_NewFrame();
+        ImGui::NewFrame();
+
+        //some imgui UI to test
+        ImGui::ShowDemoWindow();
+
+        //make imgui calculate internal draw structures
+        ImGui::Render();
+
+        //our draw function
         draw();
     }
 }
@@ -559,6 +574,7 @@ void VulkanEngine::immediate_submit(std::function<void(VkCommandBuffer cmd)>&& f
 void VulkanEngine::init_imgui() {
 
     //1.create description pool for imgui
+
     //the size of the pool is very oversize, but its copied from imgui demo itself
     VkDescriptorPoolSize pool_sizes[] = {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
@@ -617,5 +633,5 @@ void VulkanEngine::init_imgui() {
     _mainDeletionQueue.push_function([=] {
         ImGui_ImplVulkan_Shutdown();
         vkDestroyDescriptorPool(_device, imguiPool, nullptr);
-        });
+    });
 }
