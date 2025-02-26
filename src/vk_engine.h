@@ -83,12 +83,13 @@ public:
 
 	DeletionQueue _mainDeletionQueue;
 
+	//vma lib allocator
+	VmaAllocator _allocator;
+
 	//immediate submit structures
 	VkFence _immFence;
 	VkCommandBuffer _immCommandBuffer;
 	VkCommandPool _immCommandPool;
-
-	VmaAllocator _allocator;
 
 	static VulkanEngine& Get();
 
@@ -101,7 +102,6 @@ public:
 	//draw loop
 	void draw();
 	void draw_background(VkCommandBuffer cmd);
-
 	void draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView);
 
 	//run main loop
