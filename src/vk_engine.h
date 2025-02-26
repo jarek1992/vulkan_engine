@@ -45,12 +45,21 @@ struct ComputePushConstants {
 	glm::vec4 data4;
 };
 
+struct ComputeEffect {
+	const char* name;
+
+	VkPipeline pipeline;
+	VkPipelineLayout layout;
+
+	ComputePushConstants data;
+};
+
 class VulkanEngine {
 public:
 	bool _isInitialized{ false };
 	int _frameNumber {0};
 	bool stop_rendering{ false };
-	VkExtent2D _windowExtent{ 800 , 600 };
+	VkExtent2D _windowExtent{ 1200 , 800 };
 
 	struct SDL_Window* _window{ nullptr };
 

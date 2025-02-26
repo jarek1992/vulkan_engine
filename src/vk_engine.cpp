@@ -105,7 +105,7 @@ void VulkanEngine::draw_background(VkCommandBuffer cmd) {
     //clear image
     vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
 
-    // 🔹 ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
+    //ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
     VkImageMemoryBarrier preComputeBarrier = {};
     preComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     preComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -124,10 +124,18 @@ void VulkanEngine::draw_background(VkCommandBuffer cmd) {
     //bind the descriptor set containing the draw image for the compute pipeline
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
 
-    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
-    vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);
+    ComputePushConstants pc;
+    pc.data1 = glm::vec4(1, 0, 0, 1);
+    pc.data2 = glm::vec4(0, 0, 1, 1);
 
-    // 🔹 ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
+    vkCmdPushConstants(cmd, _gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &pc);
+    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
+    vkCmdDispatch(cmd, std::ceil(_drawExtent.width / 16.0), std::ceil(_drawExtent.height / 16.0), 1);
+
+    //ALTERNATIVE OPTION IF ABOVE DOESNT WORK
+   /* vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);*/ 
+
+    //ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
     VkImageMemoryBarrier postComputeBarrier = {};
     postComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     postComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
