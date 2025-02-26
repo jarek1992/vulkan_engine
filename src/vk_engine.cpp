@@ -570,19 +570,27 @@ void VulkanEngine::init_imgui() {
         });
 }
 
-void VulkanEngine::init_background_pipelines()
-{
+void VulkanEngine::init_pipelines() {
+
     VkPipelineLayoutCreateInfo computeLayout{};
     computeLayout.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     computeLayout.pNext = nullptr;
     computeLayout.pSetLayouts = &_drawImageDescriptorLayout;
     computeLayout.setLayoutCount = 1;
 
+    VkPushConstantRange pushConstant{};
+    pushConstant.offset = 0;
+    pushConstant.size = sizeof(ComputePushConstants);
+    pushConstant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+    computeLayout.pPushConstantRanges = &pushConstant;
+    computeLayout.pushConstantRangeCount = 1;
+
     VK_CHECK(vkCreatePipelineLayout(_device, &computeLayout, nullptr, &_gradientPipelineLayout));
 
     //layout code
     VkShaderModule computeDrawShader;
-    if (!vkutil::load_shader_module("../../shaders/gradient.comp.spv", _device, &computeDrawShader)) {
+    if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", _device, &computeDrawShader)) {
         fmt::print("Error when building the compute shader \n");
     }
 
@@ -607,11 +615,6 @@ void VulkanEngine::init_background_pipelines()
         vkDestroyPipelineLayout(_device, _gradientPipelineLayout, nullptr);
         vkDestroyPipeline(_device, _gradientPipeline, nullptr);
         });
-}
-
-void VulkanEngine::init_pipelines() {
-
-    init_background_pipelines();
 }
 
 void VulkanEngine::init_descriptors() {
