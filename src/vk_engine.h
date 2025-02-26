@@ -107,6 +107,10 @@ public:
 	VkCommandBuffer _immCommandBuffer;
 	VkCommandPool _immCommandPool;
 
+	std::vector<ComputeEffect> backgroundEffects;
+
+	int currentBackgroundEffect {0};
+
 	static VulkanEngine& Get();
 
 	//initializes everything in the engine

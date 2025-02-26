@@ -93,60 +93,75 @@ void VulkanEngine::cleanup() {
     }
 }
 
+//void VulkanEngine::draw_background(VkCommandBuffer cmd) {
+//
+//    //make a clear-color from frame number. This will flash with a 120 frame period.
+//    VkClearColorValue clearValue;
+//    float flash = std::abs(std::sin(_frameNumber / 120.f));
+//    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
+//
+//    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+//
+//    //clear image
+//    vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
+//
+//    //ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
+//    VkImageMemoryBarrier preComputeBarrier = {};
+//    preComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+//    preComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+//    preComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+//    preComputeBarrier.image = _drawImage.image;
+//    preComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+//    preComputeBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+//    preComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+//
+//    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+//        0, 0, nullptr, 0, nullptr, 1, &preComputeBarrier);
+//
+//    //bind the gradient drawing compute pipeline
+//    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipeline);
+//
+//    //bind the descriptor set containing the draw image for the compute pipeline
+//    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
+//
+//    ComputePushConstants pc;
+//    pc.data1 = glm::vec4(1, 0, 0, 1);
+//    pc.data2 = glm::vec4(0, 0, 1, 1);
+//
+//    vkCmdPushConstants(cmd, _gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &pc);
+//    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
+//    vkCmdDispatch(cmd, std::ceil(_drawExtent.width / 16.0), std::ceil(_drawExtent.height / 16.0), 1);
+//
+//    //ALTERNATIVE OPTION IF ABOVE DOESNT WORK
+//   /* vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);*/ 
+//
+//    //ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
+//    VkImageMemoryBarrier postComputeBarrier = {};
+//    postComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+//    postComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+//    postComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+//    postComputeBarrier.image = _drawImage.image;
+//    postComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+//    postComputeBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+//    postComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+//
+//    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+//        0, 0, nullptr, 0, nullptr, 1, &postComputeBarrier);
+//}
+
 void VulkanEngine::draw_background(VkCommandBuffer cmd) {
 
-    //make a clear-color from frame number. This will flash with a 120 frame period.
-    VkClearColorValue clearValue;
-    float flash = std::abs(std::sin(_frameNumber / 120.f));
-    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
+    ComputeEffect& effect = backgroundEffects[currentBackgroundEffect];
 
-    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
+    // bind the background compute pipeline
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, effect.pipeline);
 
-    //clear image
-    vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
-
-    //ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
-    VkImageMemoryBarrier preComputeBarrier = {};
-    preComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    preComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-    preComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-    preComputeBarrier.image = _drawImage.image;
-    preComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    preComputeBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    preComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-
-    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-        0, 0, nullptr, 0, nullptr, 1, &preComputeBarrier);
-
-    //bind the gradient drawing compute pipeline
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipeline);
-
-    //bind the descriptor set containing the draw image for the compute pipeline
+    // bind the descriptor set containing the draw image for the compute pipeline
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
 
-    ComputePushConstants pc;
-    pc.data1 = glm::vec4(1, 0, 0, 1);
-    pc.data2 = glm::vec4(0, 0, 1, 1);
-
-    vkCmdPushConstants(cmd, _gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &pc);
-    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
+    vkCmdPushConstants(cmd, _gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &effect.data);
+    // execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
     vkCmdDispatch(cmd, std::ceil(_drawExtent.width / 16.0), std::ceil(_drawExtent.height / 16.0), 1);
-
-    //ALTERNATIVE OPTION IF ABOVE DOESNT WORK
-   /* vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);*/ 
-
-    //ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
-    VkImageMemoryBarrier postComputeBarrier = {};
-    postComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    postComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-    postComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-    postComputeBarrier.image = _drawImage.image;
-    postComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-    postComputeBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-    postComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-        0, 0, nullptr, 0, nullptr, 1, &postComputeBarrier);
 }
 
 void VulkanEngine::draw_imgui(VkCommandBuffer cmd, VkImageView targetImageView)
@@ -286,10 +301,23 @@ void VulkanEngine::run()
         //imgui new frame
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplSDL2_NewFrame();
+
         ImGui::NewFrame();
 
-        //some imgui UI to test
-        ImGui::ShowDemoWindow();
+        if (ImGui::Begin("background")) {
+            ComputeEffect& selected = backgroundEffects[currentBackgroundEffect];
+
+            ImGui::Text("Select efect: ", selected.name);
+
+            ImGui::SliderInt("Effect Index", &currentBackgroundEffect, 0, backgroundEffects.size() - 1);
+
+            ImGui::InputFloat4("data1", (float*)&selected.data.data1);
+            ImGui::InputFloat4("data2", (float*)&selected.data.data2);
+            ImGui::InputFloat4("data3", (float*)&selected.data.data3);
+            ImGui::InputFloat4("data4", (float*)&selected.data.data4);
+
+            ImGui::End();
+        }
 
         //make imgui calculate internal draw structures
         ImGui::Render();
@@ -596,13 +624,13 @@ void VulkanEngine::init_pipelines() {
 
     VK_CHECK(vkCreatePipelineLayout(_device, &computeLayout, nullptr, &_gradientPipelineLayout));
 
-    //layout code
-    VkShaderModule computeDrawShader;
-    if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", _device, &computeDrawShader)) {
-        fmt::print("Error when building the compute shader \n");
-    }
+    ////layout code
+    //VkShaderModule computeDrawShader;
+    //if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", _device, &computeDrawShader)) {
+    //    fmt::print("Error when building the compute shader \n");
+    //}
 
-    VkPipelineShaderStageCreateInfo stageinfo{};
+   /* VkPipelineShaderStageCreateInfo stageinfo{};
     stageinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     stageinfo.pNext = nullptr;
     stageinfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
@@ -622,7 +650,66 @@ void VulkanEngine::init_pipelines() {
     _mainDeletionQueue.push_function([&]() {
         vkDestroyPipelineLayout(_device, _gradientPipelineLayout, nullptr);
         vkDestroyPipeline(_device, _gradientPipeline, nullptr);
-        });
+        });*/
+
+    //gradient shader
+    VkShaderModule gradientShader;
+    if (!vkutil::load_shader_module("../../shaders/gradient_color.comp.spv", _device, &gradientShader)) {
+        fmt::print("Error when building the compute shader \n");
+    }
+
+    //sky shader
+    VkShaderModule skyShader;
+    if (!vkutil::load_shader_module("../../shaders/sky.comp.spv", _device, &skyShader)) {
+        fmt::print("Error when building the compute shader \n");
+    }
+
+    VkPipelineShaderStageCreateInfo stageinfo{};
+    stageinfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stageinfo.pNext = nullptr;
+    stageinfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    stageinfo.module = gradientShader;
+    stageinfo.pName = "main";
+
+    VkComputePipelineCreateInfo computePipelineCreateInfo{};
+    computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    computePipelineCreateInfo.pNext = nullptr;
+    computePipelineCreateInfo.layout = _gradientPipelineLayout;
+    computePipelineCreateInfo.stage = stageinfo;
+
+    ComputeEffect gradient;
+    gradient.layout = _gradientPipelineLayout;
+    gradient.name = "gradient";
+    gradient.data = {};
+    //default gradient colors
+    gradient.data.data1 = glm::vec4(1, 0, 0, 1);
+    gradient.data.data2 = glm::vec4(0, 0, 1, 1);
+
+    VK_CHECK(vkCreateComputePipelines(_device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &gradient.pipeline));
+
+    computePipelineCreateInfo.stage.module = skyShader;
+
+    ComputeEffect sky;
+    sky.layout = _gradientPipelineLayout;
+    sky.name = "sky";
+    sky.data = {};
+    //default sky parameters
+    sky.data.data1 = glm::vec4(0.1, 0.2, 0.4, 0.97);
+
+    VK_CHECK(vkCreateComputePipelines(_device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr, &sky.pipeline));
+
+    //add 2 background effects into the array
+    backgroundEffects.push_back(gradient);
+    backgroundEffects.push_back(sky);
+
+    //destroy structures properly
+    vkDestroyShaderModule(_device, gradientShader, nullptr);
+    vkDestroyShaderModule(_device, skyShader, nullptr);
+    _mainDeletionQueue.push_function([=]() {
+        vkDestroyPipelineLayout(_device, _gradientPipelineLayout, nullptr);
+        vkDestroyPipeline(_device, sky.pipeline, nullptr);
+        vkDestroyPipeline(_device, gradient.pipeline, nullptr);
+    });
 }
 
 void VulkanEngine::init_descriptors() {
