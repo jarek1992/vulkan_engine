@@ -24,6 +24,12 @@ void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fr
     _shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
 }
 
+void PipelineBuilder::set_input_topology(VkPrimitiveTopology topology) {
+    
+    _inputAssembly.topology = topology;
+    _inputAssembly.primitiveRestartEnable = VK_FALSE;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor
