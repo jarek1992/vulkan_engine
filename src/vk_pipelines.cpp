@@ -41,6 +41,32 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //completely clear VertexInputStateCreateInfo, as we have no need for it
     VkPipelineVertexInputStateCreateInfo _vertexInputInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+
+    //build the actual pipeline
+    //we now use all of the info structs we have been writing into this one
+    //to create the pipeline 
+    VkGraphicsPipelineCreateInfo pipelineInfo = { .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
+    //connect the renderInfo to the pNext extension mechanism
+    pipelineInfo.pNext = &_renderInfo;
+
+    pipelineInfo.stageCount = (uint32_t)_shaderStages.size();
+    pipelineInfo.pStages = _shaderStages.data();
+    pipelineInfo.pVertexInputState = &_vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &_inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &_rasterizer;
+    pipelineInfo.pMultisampleState = &_multisampling;
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDepthStencilState = &_depthStencil;
+    pipelineInfo.layout = _pipelineLayout;
+
+    VkDynamicState state[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+    VkPipelineDynamicStateCreateInfo dynamicInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+    dynamicInfo.pDynamicStates = &state[0];
+    dynamicInfo.dynamicStateCount = 2;
+
+    pipelineInfo.pDynamicState = &dynamicInfo;
 }
 
 bool vkutil::load_shader_module(const char* filePath, VkDevice device, VkShaderModule* outShaderModule) {
