@@ -30,6 +30,17 @@ void PipelineBuilder::set_input_topology(VkPrimitiveTopology topology) {
     _inputAssembly.primitiveRestartEnable = VK_FALSE;
 }
 
+void PipelineBuilder::set_polygon_mode(VkPolygonMode mode) {
+
+    _rasterizer.polygonMode = mode;
+    _rasterizer.lineWidth = 1.f;
+}
+
+void PipelineBuilder::set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace) {
+    _rasterizer.cullMode = cullMode;
+    _rasterizer.frontFace = frontFace;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor
