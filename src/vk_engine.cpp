@@ -93,6 +93,8 @@ void VulkanEngine::cleanup() {
     }
 }
 
+//to check
+
 //void VulkanEngine::draw_background(VkCommandBuffer cmd) {
 //
 //    //make a clear-color from frame number. This will flash with a 120 frame period.
