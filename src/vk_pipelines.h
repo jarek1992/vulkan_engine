@@ -19,6 +19,7 @@ public:
     void clear();
 
     VkPipeline build_pipeline(VkDevice device);
+    void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
 };
 
 namespace vkutil {
