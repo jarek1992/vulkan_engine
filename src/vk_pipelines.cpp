@@ -61,6 +61,13 @@ void PipelineBuilder::disable_blending() {
     _colorBlendAttachment.blendEnable = VK_FALSE;
 }
 
+void PipelineBuilder::set_color_attachment_format(VkFormat format) {
+    _colorAttachemntFormat = format;
+    //connect the format to the renderInfo structure
+    _renderInfo.colorAttachmentCount = 1;
+    _renderInfo.pColorAttachmentFormats = &_colorAttachemntFormat;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor

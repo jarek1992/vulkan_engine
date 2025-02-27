@@ -26,6 +26,7 @@ public:
     void set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace);
     void set_multisampling_none();
     void disable_blending();
+    void set_color_attachment_format(VkFormat format);
 };
 
 namespace vkutil {
