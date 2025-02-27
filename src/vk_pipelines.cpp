@@ -53,6 +53,14 @@ void PipelineBuilder::set_multisampling_none() {
     _multisampling.alphaToOneEnable = VK_FALSE;
 }
 
+void PipelineBuilder::disable_blending() {
+
+    //default write mask
+    _colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    //no blending
+    _colorBlendAttachment.blendEnable = VK_FALSE;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor

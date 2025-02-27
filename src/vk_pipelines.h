@@ -24,6 +24,8 @@ public:
     void set_input_topology(VkPrimitiveTopology topology);
     void set_polygon_mode(VkPolygonMode mode);
     void set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace);
+    void set_multisampling_none();
+    void disable_blending();
 };
 
 namespace vkutil {
