@@ -102,6 +102,9 @@ public:
 	//vma lib allocator
 	VmaAllocator _allocator;
 
+	VkPipelineLayout _trianglePipelineLayout;
+	VkPipeline _trianglePipeline;
+
 	//immediate submit structures
 	VkFence _immFence;
 	VkCommandBuffer _immCommandBuffer;
@@ -138,5 +141,6 @@ private:
 	void destroy_swapchain();
 	void init_descriptors();
 	void init_pipelines();
+	void init_triangle_pipeline();
 	void init_imgui();
 };
