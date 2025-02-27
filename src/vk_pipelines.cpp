@@ -68,6 +68,24 @@ void PipelineBuilder::set_color_attachment_format(VkFormat format) {
     _renderInfo.pColorAttachmentFormats = &_colorAttachemntFormat;
 }
 
+void PipelineBuilder::set_depth_format(VkFormat format) {
+
+    _renderInfo.depthAttachmentFormat = format;
+}
+
+void PipelineBuilder::disable_depthtest() {
+
+    _depthStencil.depthTestEnable = VK_FALSE;
+    _depthStencil.depthWriteEnable = VK_FALSE;
+    _depthStencil.depthCompareOp = VK_COMPARE_OP_NEVER;
+    _depthStencil.depthBoundsTestEnable = VK_FALSE;
+    _depthStencil.stencilTestEnable = VK_FALSE;
+    _depthStencil.front = {};
+    _depthStencil.back = {};
+    _depthStencil.minDepthBounds = 0.f;
+    _depthStencil.maxDepthBounds = 1.f;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor

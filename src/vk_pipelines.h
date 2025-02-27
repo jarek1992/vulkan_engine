@@ -27,6 +27,8 @@ public:
     void set_multisampling_none();
     void disable_blending();
     void set_color_attachment_format(VkFormat format);
+    void set_depth_format(VkFormat format);
+    void disable_depthtest();
 };
 
 namespace vkutil {
