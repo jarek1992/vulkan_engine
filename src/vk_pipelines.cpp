@@ -41,6 +41,18 @@ void PipelineBuilder::set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontF
     _rasterizer.frontFace = frontFace;
 }
 
+void PipelineBuilder::set_multisampling_none() {
+
+    _multisampling.sampleShadingEnable = VK_FALSE;
+    //multisampling defaulted to no multisampling (1 sample per pixel)
+    _multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    _multisampling.minSampleShading = 1.0f;
+    _multisampling.pSampleMask = nullptr;
+    //no alpha to coverage either
+    _multisampling.alphaToCoverageEnable = VK_FALSE;
+    _multisampling.alphaToOneEnable = VK_FALSE;
+}
+
 VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
 
     //make viewport state from our stored viewport and scissor
