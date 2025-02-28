@@ -83,6 +83,8 @@ public:
 	
 	//draw resources
 	AllocatedImage _drawImage;
+	AllocatedImage _depthImage;
+
 	VkExtent2D _swapchainExtent;
 	VkExtent2D _drawExtent;
 

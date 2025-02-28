@@ -6,8 +6,6 @@
 
 #include <vk_initializers.h>
 #include <vk_types.h>
-#include <vk_images.h>
-#include <vk_pipelines.h>
 
 #include "VkBootstrap.h"
 #include "imgui.h"
@@ -19,6 +17,8 @@
 
 #define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
+#include <vk_images.h>
+#include <vk_pipelines.h>
 
 VulkanEngine* loadedEngine = nullptr;
 
@@ -28,7 +28,7 @@ constexpr bool bUseValidationLayers = false;
 
 void VulkanEngine::init()
 {
-    // only one engine initialization is allowed with the application.
+    //only one engine initialization is allowed with the application.
     assert(loadedEngine == nullptr);
     loadedEngine = this;
 
@@ -93,64 +93,6 @@ void VulkanEngine::cleanup() {
     }
 }
 
-//to check
-
-//void VulkanEngine::draw_background(VkCommandBuffer cmd) {
-//
-//    //make a clear-color from frame number. This will flash with a 120 frame period.
-//    VkClearColorValue clearValue;
-//    float flash = std::abs(std::sin(_frameNumber / 120.f));
-//    clearValue = { { 0.0f, 0.0f, flash, 1.0f } };
-//
-//    VkImageSubresourceRange clearRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-//
-//    //clear image
-//    vkCmdClearColorImage(cmd, _drawImage.image, VK_IMAGE_LAYOUT_GENERAL, &clearValue, 1, &clearRange);
-//
-//    //ADD MEMORY BARRIER AFTER CLEAR TO ENSURE COMPUTE SHADER READS VALID DATA
-//    VkImageMemoryBarrier preComputeBarrier = {};
-//    preComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-//    preComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-//    preComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-//    preComputeBarrier.image = _drawImage.image;
-//    preComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-//    preComputeBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-//    preComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-//
-//    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-//        0, 0, nullptr, 0, nullptr, 1, &preComputeBarrier);
-//
-//    //bind the gradient drawing compute pipeline
-//    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipeline);
-//
-//    //bind the descriptor set containing the draw image for the compute pipeline
-//    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, _gradientPipelineLayout, 0, 1, &_drawImageDescriptors, 0, nullptr);
-//
-//    ComputePushConstants pc;
-//    pc.data1 = glm::vec4(1, 0, 0, 1);
-//    pc.data2 = glm::vec4(0, 0, 1, 1);
-//
-//    vkCmdPushConstants(cmd, _gradientPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ComputePushConstants), &pc);
-//    //execute the compute pipeline dispatch. We are using 16x16 workgroup size so we need to divide by it
-//    vkCmdDispatch(cmd, std::ceil(_drawExtent.width / 16.0), std::ceil(_drawExtent.height / 16.0), 1);
-//
-//    //ALTERNATIVE OPTION IF ABOVE DOESNT WORK
-//   /* vkCmdDispatch(cmd, (_drawExtent.width + 15) / 16, (_drawExtent.height + 15) / 16, 1);*/ 
-//
-//    //ADD MEMORY BARRIER AFTER COMPUTE SHADER TO ENSURE GRAPHICS PIPELINE READS FINAL DATA
-//    VkImageMemoryBarrier postComputeBarrier = {};
-//    postComputeBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-//    postComputeBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-//    postComputeBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-//    postComputeBarrier.image = _drawImage.image;
-//    postComputeBarrier.subresourceRange = vkinit::image_subresource_range(VK_IMAGE_ASPECT_COLOR_BIT);
-//    postComputeBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-//    postComputeBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-//
-//    vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-//        0, 0, nullptr, 0, nullptr, 1, &postComputeBarrier);
-//}
-
 void VulkanEngine::draw_background(VkCommandBuffer cmd) {
 
     ComputeEffect& effect = backgroundEffects[currentBackgroundEffect];
@@ -168,10 +110,10 @@ void VulkanEngine::draw_background(VkCommandBuffer cmd) {
 
 void VulkanEngine::draw_geometry(VkCommandBuffer cmd) {
 
-    //begin a render pass connected to our draw image
-    VkRenderingAttachmentInfo colorAttachemnt = vkinit::attachment_info(_drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    //begin a render pass  connected to our draw image
+    VkRenderingAttachmentInfo colorAttachment = vkinit::attachment_info(_drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    VkRenderingInfo renderInfo = vkinit::rendering_info(_drawExtent, &colorAttachemnt, nullptr);
+    VkRenderingInfo renderInfo = vkinit::rendering_info(_drawExtent, &colorAttachment, nullptr);
     vkCmdBeginRendering(cmd, &renderInfo);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _trianglePipeline);
@@ -241,8 +183,8 @@ void VulkanEngine::draw() {
     //draw loop
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 
-    //transition our main draw image into general layout so we can write into it
-    //we will overwrite it all so we dont care about what was the older layout
+    // transition our main draw image into general layout so we can write into it
+    // we will overwrite it all so we dont care about what was the older layout
     vkutil::transition_image(cmd, _drawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
     draw_background(cmd);
@@ -251,10 +193,9 @@ void VulkanEngine::draw() {
 
     draw_geometry(cmd);
 
-    //transition the draw image and the swapchain image into their correct transfer layouts 
+    //transtion the draw image and the swapchain image into their correct transfer layouts
     vkutil::transition_image(cmd, _drawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     vkutil::transition_image(cmd, _swapchainImages[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
     //draw imgui
     //execute a copy from the draw image into swapchain
     vkutil::copy_image_to_image(cmd, _drawImage.image, _swapchainImages[swapchainImageIndex], _drawExtent, _swapchainExtent);
@@ -724,6 +665,8 @@ void VulkanEngine::init_pipelines() {
         vkDestroyPipeline(_device, sky.pipeline, nullptr);
         vkDestroyPipeline(_device, gradient.pipeline, nullptr);
     });
+
+    init_triangle_pipeline();
 }
 
 void VulkanEngine::init_triangle_pipeline() {
@@ -738,11 +681,11 @@ void VulkanEngine::init_triangle_pipeline() {
     }
 
     VkShaderModule triangleVertexShader;
-    if (!vkutil::load_shader_module("../../shaders/colored_triangle.vert.spv", _device, &triangleFragShader)) {
-        fmt::print("Error when building the triangle fragment shader module");
+    if (!vkutil::load_shader_module("../../shaders/colored_triangle.vert.spv", _device, &triangleVertexShader)) {
+        fmt::print("Error when building the triangle vertex shader module");
     }
     else {
-        fmt::print("Triangle fragment shader succesfully loaded");
+        fmt::print("Triangle vertex shader succesfully loaded");
     }
 
     //build the pipeline layout that controls the inputs/outputs of the shader
