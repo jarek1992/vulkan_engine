@@ -44,7 +44,7 @@ cmake_ninja_workdir = D$:\vulkan-guide-starting-point-2\out\build\x64-Debug\
 #############################################
 # Utility command for Shaders
 
-build Shaders: phony CMakeFiles\Shaders D$:\vulkan-guide-starting-point-2\shaders\gradient.comp.spv D$:\vulkan-guide-starting-point-2\shaders\gradient_color.comp.spv D$:\vulkan-guide-starting-point-2\shaders\sky.comp.spv
+build Shaders: phony CMakeFiles\Shaders D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.frag.spv D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.vert.spv D$:\vulkan-guide-starting-point-2\shaders\gradient.comp.spv D$:\vulkan-guide-starting-point-2\shaders\gradient_color.comp.spv D$:\vulkan-guide-starting-point-2\shaders\sky.comp.spv
 
 
 #############################################
@@ -103,7 +103,25 @@ build install\local: phony CMakeFiles\install\local.util
 #############################################
 # Phony custom command for CMakeFiles\Shaders
 
-build CMakeFiles\Shaders | ${cmake_ninja_workdir}CMakeFiles\Shaders: phony D$:\vulkan-guide-starting-point-2\shaders\gradient.comp.spv D$:\vulkan-guide-starting-point-2\shaders\gradient_color.comp.spv D$:\vulkan-guide-starting-point-2\shaders\sky.comp.spv
+build CMakeFiles\Shaders | ${cmake_ninja_workdir}CMakeFiles\Shaders: phony D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.frag.spv D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.vert.spv D$:\vulkan-guide-starting-point-2\shaders\gradient.comp.spv D$:\vulkan-guide-starting-point-2\shaders\gradient_color.comp.spv D$:\vulkan-guide-starting-point-2\shaders\sky.comp.spv
+
+
+#############################################
+# Custom command for D:\vulkan-guide-starting-point-2\shaders\colored_triangle.frag.spv
+
+build D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.frag.spv: CUSTOM_COMMAND D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.frag
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D D:\vulkan-guide-starting-point-2\out\build\x64-Debug && C:\VulkanSDK\1.4.304.0\Bin\glslangValidator.exe -V D:/vulkan-guide-starting-point-2/shaders/colored_triangle.frag -o D:/vulkan-guide-starting-point-2/shaders/colored_triangle.frag.spv"
+  DESC = Generating D:/vulkan-guide-starting-point-2/shaders/colored_triangle.frag.spv
+  restat = 1
+
+
+#############################################
+# Custom command for D:\vulkan-guide-starting-point-2\shaders\colored_triangle.vert.spv
+
+build D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.vert.spv: CUSTOM_COMMAND D$:\vulkan-guide-starting-point-2\shaders\colored_triangle.vert
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D D:\vulkan-guide-starting-point-2\out\build\x64-Debug && C:\VulkanSDK\1.4.304.0\Bin\glslangValidator.exe -V D:/vulkan-guide-starting-point-2/shaders/colored_triangle.vert -o D:/vulkan-guide-starting-point-2/shaders/colored_triangle.vert.spv"
+  DESC = Generating D:/vulkan-guide-starting-point-2/shaders/colored_triangle.vert.spv
+  restat = 1
 
 
 #############################################

@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vk_initializers.h>
 
-
 //pipe clear
 void PipelineBuilder::clear() {
 
@@ -20,13 +19,16 @@ void PipelineBuilder::clear() {
 void PipelineBuilder::set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader) {
 
     _shaderStages.clear();
-    _shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
-    _shaderStages.push_back(vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
+    _shaderStages.push_back(
+        vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_VERTEX_BIT, vertexShader));
+    _shaderStages.push_back(
+        vkinit::pipeline_shader_stage_create_info(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader));
 }
 
 void PipelineBuilder::set_input_topology(VkPrimitiveTopology topology) {
     
     _inputAssembly.topology = topology;
+    // we are not going to use primitive restart so leave it on false
     _inputAssembly.primitiveRestartEnable = VK_FALSE;
 }
 
@@ -37,6 +39,7 @@ void PipelineBuilder::set_polygon_mode(VkPolygonMode mode) {
 }
 
 void PipelineBuilder::set_cull_mode(VkCullModeFlags cullMode, VkFrontFace frontFace) {
+
     _rasterizer.cullMode = cullMode;
     _rasterizer.frontFace = frontFace;
 }
@@ -62,6 +65,7 @@ void PipelineBuilder::disable_blending() {
 }
 
 void PipelineBuilder::set_color_attachment_format(VkFormat format) {
+
     _colorAttachemntFormat = format;
     //connect the format to the renderInfo structure
     _renderInfo.colorAttachmentCount = 1;
@@ -140,8 +144,8 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device) {
     //its easy to error out on create graphics pipeline, so we handle it a bit
     // better than the common VK_CHECK case
     VkPipeline newPipeline;
-    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo,
-        nullptr, &newPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, 
+            nullptr, &newPipeline) != VK_SUCCESS) {
         fmt::println("failed to create pipeline");
         return VK_NULL_HANDLE; //failed to create graphics pipeline
     }
