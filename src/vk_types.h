@@ -52,7 +52,7 @@ struct GPUMeshBuffers {
 };
 
 //push constants for our mesh object draws
-struct GDUDrawPushConstants {
+struct GPUDrawPushConstants {
 
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
