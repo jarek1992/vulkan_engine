@@ -107,6 +107,11 @@ public:
 	VkPipelineLayout _trianglePipelineLayout;
 	VkPipeline _trianglePipeline;
 
+	VkPipelineLayout _meshPipelineLayout;
+	VkPipeline _meshPipeline;
+
+	GPUMeshBuffers rectangle;
+
 	//immediate submit structures
 	VkFence _immFence;
 	VkCommandBuffer _immCommandBuffer;
@@ -142,13 +147,15 @@ public:
 
 private:
 	void init_vulkan();
-	void init_swapchain();
-	void init_commands();
-	void init_sync_structures();
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
-	void init_descriptors();
+	void init_swapchain();
+	void init_commands();
+	void init_background_pipeline();
 	void init_pipelines();
 	void init_triangle_pipeline();
+	void init_mesh_pipeline();
+	void init_descriptors();
+	void init_sync_structures();
 	void init_imgui();
 };
