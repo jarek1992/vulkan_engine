@@ -58,10 +58,6 @@ struct GDUDrawPushConstants {
     VkDeviceAddress vertexBuffer;
 };
 
-
-
-
-
 #define VK_CHECK(x)                                                     \
     do {                                                                \
         VkResult err = x;                                               \
