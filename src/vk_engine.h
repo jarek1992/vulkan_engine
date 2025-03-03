@@ -158,4 +158,5 @@ private:
 	void init_descriptors();
 	void init_sync_structures();
 	void init_imgui();
+	void init_default_data();
 };
