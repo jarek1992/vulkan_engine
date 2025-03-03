@@ -43,12 +43,22 @@ struct Vertex {
     glm::vec4 color;
 };
 
+//holds the resources needed for a mesh
 struct GPUMeshBuffers {
 
     AllocatedBuffer indexBuffer;
     AllocatedBuffer vertexBuffer;
     VkDeviceAddress vertexBufferAddress;
 };
+
+//push constants for our mesh object draws
+struct GDUDrawPushConstants {
+
+    glm::mat4 worldMatrix;
+    VkDeviceAddress vertexBuffer;
+};
+
+
 
 
 
