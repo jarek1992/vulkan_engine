@@ -13,4 +13,22 @@
 
 std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngine* engine, std::filesystem::path filePath) {
 
+	std::cout << "Loading GLTF: " << filePath << std::endl;
+
+	fastgltf::GltfDataBuffer data;
+	data.loadFromFile(filePath);
+
+	constexpr auto gltfOptions = fastgltf::Options::LoadGLBBuffers
+		| fastgltf::Options::LoadExternalBuffers;
+
+	fastgltf::Asset gltf;
+	fastgltf::Parser parser{};
+
+	auto load = parser.loadBinaryGLTF(&data, filePath.parent_path(), gltfOptions);
+	if (load) {
+		gltf = std::move(load.get());
+	} else {
+		fmt::print("Failed to load GLTF: {} \n", fastgltf::to_underlying(load.error()));
+		return {};
+	}
 }
