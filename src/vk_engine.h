@@ -5,6 +5,9 @@
 
 #include <vk_types.h>
 #include <vk_descriptors.h>
+#include <vk_loader.h>
+
+#include <vector>
 
 struct DeletionQueue {
 
@@ -111,6 +114,7 @@ public:
 	VkPipeline _meshPipeline;
 
 	GPUMeshBuffers rectangle;
+	std::vector<std::shared_ptr<MeshAsset>> testMeshes;
 
 	//immediate submit structures
 	VkFence _immFence;
