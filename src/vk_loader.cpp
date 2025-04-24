@@ -104,7 +104,16 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
 					});
 			}
 
+			//load vertex colors
+			auto colors = p.findAttribute("COLOR_0");
+			if (colors != p.attributes.end()) {
 
+				fastgltf::iterateAccessorWithIndex<glm::vec4>(gltf, gltf.accessors[(*colors).second],
+					[&](glm::vec4 v, size_t index) {
+						vertices[initial_vtx + index].color = v;
+					});
+			}
+			newmesh.surfaces.push_back(newSurface);
 		}
 
 	}
