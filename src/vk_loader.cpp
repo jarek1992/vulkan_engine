@@ -116,6 +116,16 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
 			newmesh.surfaces.push_back(newSurface);
 		}
 
+		//display the vertex normals
+		constexpr bool OverrideColors = true;
+		if (OverrideColors) {
+			for (Vertex& vtx : vertices) {
+				vtx.color = glm::vec4(vtx.normal, 1.f);
+			}
+		}
+		newmesh.meshBuffers = engine->uploadMesh(indices, vertices);
+		meshes.emplace_back(std::make_shared<MeshAsset>(std::move(newmesh)));
 	}
 
+	return meshes;
 }
