@@ -82,6 +82,29 @@ std::optional<std::vector<std::shared_ptr<MeshAsset>>> loadGltfMeshes(VulkanEngi
 						vertices[initial_vtx + index] = newvtx;
 					});
 			}
+
+			//load vertex normals
+			auto normals = p.findAttribute("NORMAL");
+			if (normals != p.attributes.end()) {
+				
+				fastgltf::iterateAccessorWithIndex<glm::vec3>(gltf, gltf.accessors[(*normals).second],
+					[&](glm::vec3 v, size_t index) {
+						vertices[initial_vtx + index].normal = v;
+					});
+			}
+
+			//load UVs
+			auto uv = p.findAttribute("TEXCOORD_0");
+			if (uv != p.attributes.end()) {
+
+				fastgltf::iterateAccessorWithIndex<glm::vec2>(gltf, gltf.accessors[(*uv).second],
+					[&](glm::vec3 v, size_t index) {
+						vertices[initial_vtx + index].uv_x = v.x;
+						vertices[initial_vtx + index].uv_y = v.y;
+					});
+			}
+
+
 		}
 
 	}
